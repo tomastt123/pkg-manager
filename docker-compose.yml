@@ -9,8 +9,15 @@ services:
     working_dir: /srv/api
     volumes:
       - ./api:/srv/api:cached
+      - api_var:/srv/api/var
     depends_on:
       - redis
+    command: >
+      bash -c "
+        chown -R www-data:www-data /srv/api/var &&
+        chmod -R 770 /srv/api/var &&
+        php-fpm
+      "
 
   nginx:
     image: nginx:stable
@@ -51,4 +58,5 @@ services:
       - "8001:80"
 
 volumes:
+  api_var:
   neo4j_data:
