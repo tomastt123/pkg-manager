@@ -25,33 +25,29 @@ class FetchDocumentContentHandler implements MessageHandlerInterface
 
     public function __invoke(FetchDocumentContent $message): void
     {
-        // Retrieve the Document entity
         $document = $this->entityManager
             ->getRepository(Document::class)
             ->find($message->getDocumentId());
 
         if (!$document) {
-            // Document not found, nothing to do
             return;
         }
 
         try {
             $response = $this->httpClient->request('GET', $document->getUrl());
             if (200 !== $response->getStatusCode()) {
-                // Non-OK response, skip
                 return;
             }
             $content = $response->getContent();
         } catch (TransportExceptionInterface | ClientExceptionInterface $e) {
-            // Logging could be added here if desired
             return;
         }
 
-        // Update document with fetched content
         $document->setRawContent($content);
         $document->setFetchedAt(new \DateTimeImmutable());
 
         $this->entityManager->persist($document);
         $this->entityManager->flush();
+        $bus->dispatch(new ExtractDocumentEntities($document->getId()));
     }
 }
