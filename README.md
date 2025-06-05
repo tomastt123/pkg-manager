@@ -72,8 +72,6 @@ GitHub Actions (CI: lint, tests, Docker build)
 
 Configure var/ as a Docker volume to avoid read‑only issues on host bind mounts.
 
-Implement the NLP extraction pipeline (spaCy or OpenAI).
-
 Sync entities/relations into Neo4j and expose via GraphQL.
 
 Build the React graph UI and connect via Mercure for live collaboration.
