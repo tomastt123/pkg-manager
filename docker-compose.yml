@@ -37,8 +37,8 @@ services:
   neo4j:
     image: neo4j:5
     container_name: kg_neo4j
-    # if you want to use your logins, change the environment here, but if u want to push them, 
-    # make it dynamic
+    # if you want to use your logins, change the environment here, but if u want to push them,
+    # make it dynamic in env file
     environment:
       - NEO4J_AUTH=neo4j/S3cur3P@ss 
     ports:
