@@ -1,17 +1,17 @@
-# docker/php/Dockerfile
 FROM php:8.2-fpm
 
-# Install OS packages & PHP extensions
 RUN apt-get update \
  && apt-get install -y \
       libsqlite3-dev \
+      libpq-dev \
       libssl-dev \
       zip unzip \
- && docker-php-ext-install pdo pdo_sqlite \
- # Install and enable the Redis extension
+ && docker-php-ext-install \
+      pdo \
+      pdo_sqlite \
+      pdo_pgsql \
  && pecl install redis \
  && docker-php-ext-enable redis \
- # (Optional) OPcache for speed
  && docker-php-ext-install opcache \
  && { \
       echo 'opcache.memory_consumption=128'; \
@@ -21,3 +21,5 @@ RUN apt-get update \
       echo 'opcache.revalidate_freq=2'; \
     } >> /usr/local/etc/php/conf.d/opcache.ini \
  && rm -rf /var/lib/apt/lists/*
+
+ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

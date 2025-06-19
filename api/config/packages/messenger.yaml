@@ -18,6 +18,8 @@ framework:
             Symfony\Component\Notifier\Message\ChatMessage: async
             Symfony\Component\Notifier\Message\SmsMessage: async
             'App\Message\FetchDocumentContent': async
+            'App\Message\ExtractDocumentEntities': async
+
 
             # Route your messages to the transports
             # 'App\Message\YourMessage': async

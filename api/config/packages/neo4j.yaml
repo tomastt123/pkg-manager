@@ -2,7 +2,4 @@ neo4j:
   default_driver: default
   drivers:
     default:
-      uri: '%env(NEO4J_URI)%'
-      auth:
-        user:     '%env(NEO4J_USER)%'
-        password: '%env(NEO4J_PASS)%'
+      dsn: '%env(NEO4J_DEFAULT_CONNECTION_DSN)%'

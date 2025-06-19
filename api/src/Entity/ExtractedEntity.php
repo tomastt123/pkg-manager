@@ -3,41 +3,54 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GraphQl\Query;
+use ApiPlatform\Metadata\GraphQl\QueryCollection;
 use App\Repository\ExtractedEntityRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Document;
 use App\Entity\Relation;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ExtractedEntityRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    normalizationContext: ['groups' => ['extracted_entity:read']],
+    denormalizationContext: ['groups' => ['extracted_entity:write']],
+    graphQlOperations: [
+        new Query(),           // item query: extractedEntity(id: ID!)
+        new QueryCollection(), // collection query: extractedEntities(...)
+    ]
+)]
 class ExtractedEntity
 {
     #[ORM\Id, ORM\GeneratedValue, ORM\Column]
+    #[Groups(['extracted_entity:read','document_graph:read'])]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $name = null;
+    #[ORM\Column(length: 255)]
+    #[Groups(['extracted_entity:read','extracted_entity:write','document_graph:read'])]
+    private string $name;
 
     #[ORM\Column(length: 100)]
-    private ?string $type = null;
+    #[Groups(['extracted_entity:read','extracted_entity:write','document_graph:read'])]
+    private string $type;
 
     #[ORM\ManyToOne(targetEntity: Document::class, inversedBy: 'extractedEntities')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Document $document = null;
+    private Document $document;
 
     #[ORM\OneToMany(
         mappedBy: 'fromEntity',
         targetEntity: Relation::class,
-        cascade: ['persist','remove']
+        cascade: ['persist', 'remove']
     )]
     private Collection $relationsFrom;
 
     #[ORM\OneToMany(
         mappedBy: 'toEntity',
         targetEntity: Relation::class,
-        cascade: ['persist','remove']
+        cascade: ['persist', 'remove']
     )]
     private Collection $relationsTo;
 
@@ -51,26 +64,38 @@ class ExtractedEntity
     {
         return $this->id;
     }
-    public function getName(): ?string { return $this->name; }
-    public function setName(?string $name): static
+
+    public function getName(): string
+    {
+        return $this->name;
+    }
+    public function setName(string $name): static
     {
         $this->name = $name;
         return $this;
     }
-    public function getType(): ?string { return $this->type; }
+
+    public function getType(): string
+    {
+        return $this->type;
+    }
     public function setType(string $type): static
     {
         $this->type = $type;
         return $this;
     }
-    public function getDocument(): ?Document { return $this->document; }
-    public function setDocument(?Document $doc): static
+
+    public function getDocument(): Document
     {
-        $this->document = $doc;
+        return $this->document;
+    }
+    public function setDocument(Document $document): static
+    {
+        $this->document = $document;
         return $this;
     }
 
-    /** @return Collection<int,Relation> */
+    /** @return Collection<int, Relation> */
     public function getRelationsFrom(): Collection
     {
         return $this->relationsFrom;
@@ -93,7 +118,7 @@ class ExtractedEntity
         return $this;
     }
 
-    /** @return Collection<int,Relation> */
+    /** @return Collection<int, Relation> */
     public function getRelationsTo(): Collection
     {
         return $this->relationsTo;

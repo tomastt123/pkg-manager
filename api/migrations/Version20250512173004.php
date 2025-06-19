@@ -19,15 +19,14 @@ final class Version20250512173004 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        // this up() migration is auto-generated, please modify it to your needs
         $this->addSql(<<<'SQL'
-            CREATE TABLE extracted_entity (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, document_id INTEGER NOT NULL, name VARCHAR(255) DEFAULT NULL, type VARCHAR(100) NOT NULL, CONSTRAINT FK_E25C1BFDC33F7837 FOREIGN KEY (document_id) REFERENCES document (id) NOT DEFERRABLE INITIALLY IMMEDIATE)
+            CREATE TABLE extracted_entity (id SERIAL PRIMARY KEY NOT NULL, document_id INT NOT NULL, name VARCHAR(255) DEFAULT NULL, type VARCHAR(100) NOT NULL, CONSTRAINT FK_E25C1BFDC33F7837 FOREIGN KEY (document_id) REFERENCES document (id) NOT DEFERRABLE INITIALLY IMMEDIATE)
         SQL);
         $this->addSql(<<<'SQL'
             CREATE INDEX IDX_E25C1BFDC33F7837 ON extracted_entity (document_id)
         SQL);
         $this->addSql(<<<'SQL'
-            CREATE TABLE relation (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, from_entity_id INTEGER NOT NULL, to_entity_id INTEGER NOT NULL, document_id INTEGER NOT NULL, label VARCHAR(255) NOT NULL, CONSTRAINT FK_6289474991B9E8E7 FOREIGN KEY (from_entity_id) REFERENCES extracted_entity (id) NOT DEFERRABLE INITIALLY IMMEDIATE, CONSTRAINT FK_62894749B086AA2C FOREIGN KEY (to_entity_id) REFERENCES extracted_entity (id) NOT DEFERRABLE INITIALLY IMMEDIATE, CONSTRAINT FK_62894749C33F7837 FOREIGN KEY (document_id) REFERENCES document (id) NOT DEFERRABLE INITIALLY IMMEDIATE)
+            CREATE TABLE relation (id SERIAL PRIMARY KEY NOT NULL, from_entity_id INT NOT NULL, to_entity_id INT NOT NULL, document_id INT NOT NULL, label VARCHAR(255) NOT NULL, CONSTRAINT FK_6289474991B9E8E7 FOREIGN KEY (from_entity_id) REFERENCES extracted_entity (id) NOT DEFERRABLE INITIALLY IMMEDIATE, CONSTRAINT FK_62894749B086AA2C FOREIGN KEY (to_entity_id) REFERENCES extracted_entity (id) NOT DEFERRABLE INITIALLY IMMEDIATE, CONSTRAINT FK_62894749C33F7837 FOREIGN KEY (document_id) REFERENCES document (id) NOT DEFERRABLE INITIALLY IMMEDIATE)
         SQL);
         $this->addSql(<<<'SQL'
             CREATE INDEX IDX_6289474991B9E8E7 ON relation (from_entity_id)
@@ -42,7 +41,6 @@ final class Version20250512173004 extends AbstractMigration
 
     public function down(Schema $schema): void
     {
-        // this down() migration is auto-generated, please modify it to your needs
         $this->addSql(<<<'SQL'
             DROP TABLE extracted_entity
         SQL);
