@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   php:
     build:
@@ -11,13 +9,36 @@ services:
       - ./api:/srv/api:cached
       - api_var:/srv/api/var
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+    env_file:
+        - ./.env
+    environment:
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-!ChangeMe!}@database:5432/${POSTGRES_DB:-app}"
+      NEO4J_DEFAULT_CONNECTION_DSN: "${NEO4J_DEFAULT_CONNECTION_DSN}"
+      NEO4J_USER:                "${NEO4J_USER}"
+      NEO4J_PASS:                "${NEO4J_PASS}"
+      HUGGINGFACE_API_TOKEN:     "${HUGGINGFACE_API_TOKEN}"
+      HUGGINGFACE_NER_MODEL:     "${HUGGINGFACE_NER_MODEL}"
+      HUGGINGFACE_RE_MODEL:      "${HUGGINGFACE_RE_MODEL}"
+      MESSENGER_TRANSPORT_DSN:   "${MESSENGER_TRANSPORT_DSN}"
     command: >
       bash -c "
         chown -R www-data:www-data /srv/api/var &&
         chmod -R 770 /srv/api/var &&
         php-fpm
       "
+
+  database:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB:       "${POSTGRES_DB}"
+      POSTGRES_USER:     "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+    volumes:
+      - database_data:/var/lib/postgresql/data:rw
 
   nginx:
     image: nginx:stable
@@ -33,19 +54,31 @@ services:
   redis:
     image: redis:7-alpine
     container_name: kg_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - redis_data:/data
 
   neo4j:
     image: neo4j:5
     container_name: kg_neo4j
-    # if you want to use your logins, change the environment here, but if u want to push them,
-    # make it dynamic in env file
     environment:
-      - NEO4J_AUTH=neo4j/S3cur3P@ss 
+      NEO4J_AUTH: "${NEO4J_USER}/${NEO4J_PASS}"
     ports:
       - "7474:7474"
       - "7687:7687"
     volumes:
       - neo4j_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u ${NEO4J_USER} -p ${NEO4J_PASS} \"RETURN 1;\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   mercure:
     image: dunglas/mercure
@@ -63,3 +96,5 @@ services:
 volumes:
   api_var:
   neo4j_data:
+  database_data:
+  redis_data:
